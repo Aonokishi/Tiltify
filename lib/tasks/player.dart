@@ -14,6 +14,7 @@ class Player extends StatefulWidget {
 }
 
 class _PlayerState extends State<Player> {
+  final AssetsAudioPlayer player = AssetsAudioPlayer();
   List<FileSystemEntity>? songs;
 
   @override
@@ -63,7 +64,7 @@ class _PlayerState extends State<Player> {
           title: Text(song.metas.title ?? fallbackName),
           subtitle: Text(song.metas.artist ?? "Unknown"),
           onTap: () {
-            playFile(song.path);
+            playAudio(song);
           },
         );
       },
@@ -88,9 +89,9 @@ class _PlayerState extends State<Player> {
     return songs;
   }
 
-  void playFile(String path) async {
-    await AssetsAudioPlayer().open(
-      Audio.file(path),
+  void playAudio(Audio audio) async {
+    await player.open(
+      audio,
       autoStart: true,
       showNotification: true,
     );
