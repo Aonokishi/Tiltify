@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
+import 'package:id3/id3.dart';
 
 class Player extends StatefulWidget {
   const Player({Key? key}) : super(key: key);
@@ -37,7 +38,22 @@ class _PlayerState extends State<Player> {
     return ListView.separated(
       itemCount: songs!.length,
       itemBuilder: (context, index) {
-        Audio song = Audio.file(songs![index].path);
+        String songPath = songs![index].path;
+
+        List<int> mp3Bytes = File(songPath).readAsBytesSync();
+        MP3Instance mp3instance = new MP3Instance(mp3Bytes);
+        mp3instance.parseTagsSync();
+        var metadata = mp3instance.getMetaTags();
+
+        Audio song = Audio.file(
+          songPath,
+          metas: Metas(
+            title: metadata?["Title"],
+            artist: metadata?["Artist"],
+            album: metadata?["Album"],
+          ),
+        );
+
         String fallbackName = song.path.split("/").last;
 
         return ListTile(
