@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../tasks/start.dart';
 import '../tasks/task1.dart';
 import '../tasks/task2.dart';
 import '../tasks/task2_altn.dart';
@@ -8,12 +7,13 @@ import '../tasks/task3.dart';
 import '../tasks/task4.dart';
 
 import './widgets/task_button.dart';
+import '../tasks/player.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   final Map<String, Widget> _screens = const {
-    "Start": Start(title: "Start"),
+    "Player": Player(),
     "Aufgabe 1": Task1(title: "Aufgabe 1"),
     "Aufgabe 2": Task2(title: "Aufgabe 2"),
     "Aufgabe 2 Altern.": Task2Altn(title: "Aufgabe 2 Alternative"),
