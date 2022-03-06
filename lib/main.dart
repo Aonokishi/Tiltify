@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './home/home.dart';
+import 'package:stream_testing/player/player.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: HomeScreen(),
+      home: Player(),
     );
   }
 }

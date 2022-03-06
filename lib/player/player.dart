@@ -6,7 +6,6 @@ import 'package:esense_flutter/esense.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:id3/id3.dart';
-import 'dart:convert';
 import 'package:rxdart/rxdart.dart';
 
 enum HeadPositions {
@@ -59,13 +58,16 @@ class _PlayerState extends State<Player> {
   void sensorControl() async {
     ESenseManager().connectionEvents.listen((event) {
       if (event.type == ConnectionType.connected) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Earables connected!"),
+        ));
         final stream = ESenseManager()
             .sensorEvents
             .throttleTime(
-              const Duration(seconds: 2),
-              trailing: false,
-              leading: true,
-            )
+          const Duration(seconds: 2),
+          trailing: false,
+          leading: true,
+        )
             .map(mapToHeadPosition);
 
         final stream2 = stream.bufferCount(1, 1);
@@ -85,12 +87,14 @@ class _PlayerState extends State<Player> {
 
         stream2.where(detectVolumeUp).listen((_) {
           debugPrint("VOL UP TIME");
-          player.setVolume(min(player.volume.value + 0.1, 1));
+          player.setVolume(min(player.volume.value + 0.2, 1));
+          notify();
         });
 
         stream2.where(detectVolumeDown).listen((_) {
           debugPrint("VOL DOWN TIME");
-          player.setVolume(max(player.volume.value - 0.1, 0));
+          player.setVolume(max(player.volume.value - 0.2, 0));
+          notify();
         });
 
         stream2.where(detectStartStop).listen((_) {
@@ -171,7 +175,29 @@ class _PlayerState extends State<Player> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Player")),
+      appBar: AppBar(
+        title: const Text("Player"),
+        actions: <Widget>[
+          IconButton(
+              onPressed: () {
+                showDialog<String>(context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                    title: const Text('Help'),
+                content: Text(helpDialogText()),
+                actions: <Widget>[TextButton(onPressed: () => Navigator.pop(context, 'OK'), child: const Text('OK'))]));
+              },
+              tooltip: "Help",
+              icon: const Icon(Icons.info_outline)),
+
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: "Reconnect Earables",
+            onPressed: () {
+              _connectToESense();
+            },
+          ),
+        ],
+      ),
       body: buildBody(context),
     );
   }
@@ -181,7 +207,9 @@ class _PlayerState extends State<Player> {
       itemCount: songs.length,
       itemBuilder: (context, index) {
         final song = songs[index];
-        String fallbackName = song.path.split("/").last;
+        String fallbackName = song.path
+            .split("/")
+            .last;
 
         return ListTile(
           leading: const CircleAvatar(
@@ -203,7 +231,7 @@ class _PlayerState extends State<Player> {
   List<Audio> listSongs() {
     Directory dir = Directory('/storage/emulated/0/Music');
     List<FileSystemEntity> files =
-        dir.listSync(recursive: true, followLinks: false);
+    dir.listSync(recursive: true, followLinks: false);
     List<Audio> songs = [];
 
     for (FileSystemEntity file in files) {
@@ -212,8 +240,6 @@ class _PlayerState extends State<Player> {
         MP3Instance mp3instance = MP3Instance(mp3Bytes);
         mp3instance.parseTagsSync();
         var metadata = mp3instance.getMetaTags();
-
-        //Image picture = createPicture(metadata!.values.toString().split("base64: ").last);
 
         Audio song = Audio.file(
           file.path,
@@ -230,7 +256,15 @@ class _PlayerState extends State<Player> {
     return songs;
   }
 
-  Image createPicture(String base64String) {
-    return Image.memory((base64Decode(base64String)));
+  String helpDialogText(){
+    String text = '5 head gestures for controlling the Music Player with your ESense Earables!\n'
+        'Hold each gesture for 2 seconds for a notify sound to trigger.\n\n'
+        '1. Rewind song: Left\n'
+        '2. Skip song: Right\n'
+        '3. Turn up volume: Up\n'
+        '4. Turn down volume: Down\n'
+        '5. Stop/Start: Head upside down';
+    return text;
   }
+
 }
